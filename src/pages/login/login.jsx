@@ -1,10 +1,13 @@
 //登录 的  一级路由组件
 import React, { Component } from 'react'
 import { Form, Icon, Input, Button} from 'antd';
+//import axios from "axios";
+//import qs from 'qs'
  
 
 import './login.less'
 import logo from './images/logo.png'
+import ajax from '../../api/ajax'
 
 const {Item} = Form 
  class Login extends Component {
@@ -14,7 +17,29 @@ const {Item} = Form
     this.props.form.validateFields((err, values) => {
       if (!err) 
         console.log('发送ajax请求',values);
-      })
+      ajax.post('/login',values)
+        // .then (response =>{
+        //   const result = response.data
+        //   console.log('请求成功',result)
+          // if(result.status===0){
+          //   const {user,token} = result.data
+          //   console.log('登录成功',user,token)
+          // }else{
+          //   console.log('登录失败',result.msg)
+          // }
+ 
+          //  {user,token} = data   参数的结构 
+          .then(({user,token})=>{
+            console.log('登录成功',user,token)
+          })
+
+
+        })
+
+        .catch(error =>{  //就是mesage值
+          console.log('请求出错了',error.message)
+        })
+      
     };
   
   validatePwm = (rule, value, callback)=>{
