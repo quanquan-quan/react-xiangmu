@@ -39,12 +39,11 @@
  instance.interceptors.response.use(
    response =>{
    const result = response.data
-  //  if(result.data===0){ //操作成功
-  //    return result.data || {}  //外部成功回调得到对象类型的数据{}避免取内部数据时出现andifind或者null的情况
-  //  }else{ //操作失败
-  //    return Promise.reject(result.msg || '操作失败，未知原因')
-  //   }
-  return result
+   if(result.data===0){ //操作成功
+     return result.data || {}  //外部成功回调得到对象类型的数据{}避免取内部数据时出现andifind或者null的情况
+   }else{ //操作失败
+     return Promise.reject(result.msg || '操作失败，未知原因')
+    }
    },
    error =>{
      //throw  error  

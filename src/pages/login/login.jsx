@@ -17,7 +17,7 @@ const {Item} = Form
     this.props.form.validateFields((err, values) => {
       if (!err) 
         console.log('发送ajax请求',values);
-      ajax.post('/login',values)
+     // ajax.post('/login',values)
         // .then (response =>{
         //   const result = response.data
         //   console.log('请求成功',result)
@@ -29,8 +29,16 @@ const {Item} = Form
           // }
  
           //  {user,token} = data   参数的结构 
-          .then(({user,token})=>{
-            console.log('登录成功',user,token)
+          ajax.post('/login',values)
+          .then((result)=>{
+            //解构再解构  :是继续结构    等号是值   嵌套解构
+              const {status,data:{user,token}={},msg} = result
+                if(status===0){
+                  console.log('登录成功',user,token)
+                }else{
+                  console.log('登录失败',msg)
+                }
+            //console.log('登录成功',user,token)
           })
 
 

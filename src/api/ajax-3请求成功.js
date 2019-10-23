@@ -14,8 +14,7 @@
   * 
   */
  import axios from 'axios'
- import qs from 'qs' 
- import { message } from "antd";
+ import qs from 'qs'
  
  //创建一个instance
  const instance = axios.create({
@@ -39,23 +38,15 @@
  instance.interceptors.response.use(
    response =>{
    const result = response.data
-  //  if(result.data===0){ //操作成功
-  //    return result.data || {}  //外部成功回调得到对象类型的数据{}避免取内部数据时出现andifind或者null的情况
-  //  }else{ //操作失败
-  //    return Promise.reject(result.msg || '操作失败，未知原因')
-  //   }
-  return result
+   if(result.data===0){ //操作成功
+     return result.data || {}  //外部成功回调得到对象类型的数据{}避免取内部数据时出现andifind或者null的情况
+   }else{ //操作失败
+     return Promise.reject(result.msg || '操作失败，未知原因')
+    }
    },
    error =>{
-     //throw  error  
-     //3.统一处理请求异常，外部调用者不用再处理请求异常
-      //显示请求错误的提示
-     message.error('请求出错',+error.message)
-      //中断Promise链，外部不需要再处理请求出错的情况
-
-      return new Promise(()=>{})
-
-     //return Promise.reject(error)
+     //throw  error
+     return Promise.reject(error)
    }
  )
  
