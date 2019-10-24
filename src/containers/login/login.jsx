@@ -9,8 +9,23 @@ import './login.less'
 import logo from './images/logo.png'
 import { loginAsync } from "../../redux/action-creators/user";
 
+  //connect(
+  //   state =>({hasLogin:state.user.hasLogin}),  //用于显示状态的一般属性
+  //   {loginAsync}   //用于更新状态的函数属性
+  // )(Form.create()(Login))
+//装饰器特殊的符号 是用于包装所有的Login的  装饰器语法会自动的执行一个函数
+
+
+
 const Item=Form.Item
 //const {Item} = Form 
+@connect(
+  state =>({hasLogin:state.user.hasLogin}),  //用于显示状态的一般属性
+  {loginAsync}   //用于更新状态的函数属性
+ )
+@Form.create()  //下面的这个@先执行   这样写相当于 login = Form.create()(Login)
+
+
  class Login extends Component {
 //点击登录按钮实现的功能
   handleSubmit = (event)=>{
@@ -103,8 +118,9 @@ const Item=Form.Item
 }
   
 
-export default connect(
-  state =>({hasLogin:state.user.hasLogin}),  //用于显示状态的一般属性
-  {loginAsync}   //用于更新状态的函数属性
-)(Form.create()(Login))
+// export default connect(
+//   state =>({hasLogin:state.user.hasLogin}),  //用于显示状态的一般属性
+//   {loginAsync}   //用于更新状态的函数属性
+// )(Form.create()(Login))
 
+export default Login

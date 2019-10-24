@@ -3,8 +3,8 @@ import React,{Component} from "react";
 //import { message, Button } from 'antd';//{}里的内容是引入antd的某个组件
 import {BrowserRouter,Switch,Route} from 'react-router-dom'
 
-import Login from './pages/login/login'
-import Admin from './pages/admin/admin'
+import Login from './containers/login/login'
+import Admin from './containers/admin/admin'
 
 
 export default class APP extends Component {
@@ -14,7 +14,7 @@ export default class APP extends Component {
       <BrowserRouter>
         <Switch>  
           <Route path='/login' component={Login} exact/>
-          <Route path='/admin' component={Admin}/> 
+          <Route path='/' component={Admin}/> 
         </Switch>
       </BrowserRouter>
     )
