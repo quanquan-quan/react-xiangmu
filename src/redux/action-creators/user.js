@@ -4,7 +4,7 @@
 import { reqLogin } from "../../api";
 import { message } from "antd";
 import { SAVE_USER_TOKEN,REMOVE_USER_TOKEN } from "../action-types";
-
+import storage from "../../utils/storage";
 
 /**
  * 保存user和token的同步action creator
@@ -15,8 +15,11 @@ const saveUserToken = (user,token) =>({type:SAVE_USER_TOKEN,data: {user,token}})
 
 export const removeUserToken = ()=>{
   //清除local中的user 和 token
-  localStorage.removeItem('user_key')
-  localStorage.removeItem('token_key')
+  //localStorage.removeItem('user_key')
+  //localStorage.removeItem('token_key')
+  storage.remove(storage.KEYS.TOKEN_KEY)
+  storage.remove(storage.KEYS.USER_KEY)
+
   return {type:REMOVE_USER_TOKEN}
 }
 
@@ -34,8 +37,11 @@ export const removeUserToken = ()=>{
           //登录成功
          const {user,token}= result.data
          //将user,token保存在local中
-            localStorage.setItem('user_key',JSON.stringify(user))   //对象和数组 用stringify 基本类型就不用转换成JSON
-            localStorage.setItem('token_key',token)  // 'abc' 如果用stringify 转换之后就会变成""abc""
+            //localStorage.setItem('user_key',JSON.stringify(user))   //对象和数组 用stringify 基本类型就不用转换成JSON
+            //localStorage.setItem('token_key',token)  // 'abc' 如果用stringify 转换之后就会变成""abc""
+            storage.set(storage.KEYS.USER_KEY,user)
+            storage.set(storage.KEYS.TOKEN_KEY,token)
+
 
          // 分发保存user,token信息的同步action
          dispatch(saveUserToken(user,token))
