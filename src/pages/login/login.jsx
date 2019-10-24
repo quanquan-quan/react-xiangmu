@@ -1,63 +1,40 @@
 //登录 的  一级路由组件
 import React, { Component } from 'react'
 import { Form, Icon, Input, Button} from 'antd';
-//import axios from "axios";
-//import qs from 'qs'
+import { connect } from "react-redux";
+import { Redirect } from "react-router-dom";
  
 
 import './login.less'
 import logo from './images/logo.png'
-import ajax from '../../api/ajax'
+import { loginAsync } from "../../redux/action-creators/user";
 
-const {Item} = Form 
+const Item=Form.Item
+//const {Item} = Form 
  class Login extends Component {
 //点击登录按钮实现的功能
   handleSubmit = (event)=>{
-    event.preventDefault()
-    this.props.form.validateFields((err, values) => {
+    event.preventDefault()  //阻止浏览器的默认行为
+    this.props.form.validateFields((err, values ) => {
       if (!err) 
         console.log('发送ajax请求',values);
-     // ajax.post('/login',values)
-        // .then (response =>{
-        //   const result = response.data
-        //   console.log('请求成功',result)
-          // if(result.status===0){
-          //   const {user,token} = result.data
-          //   console.log('登录成功',user,token)
-          // }else{
-          //   console.log('登录失败',result.msg)
-          // }
- 
-          //  {user,token} = data   参数的结构 
-          ajax.post('/login',values)
-          .then((result)=>{
-            //解构再解构  :是继续结构    等号是值   嵌套解构
-              const {status,data:{user,token}={},msg} = result
-                if(status===0){
-                  console.log('登录成功',user,token)
-                }else{
-                  console.log('登录失败',msg)
-                }
-            //console.log('登录成功',user,token)
-          })
-
-
+          this.props.loginAsync(values)
         })
-
         .catch(error =>{  //就是mesage值
           console.log('请求出错了',error.message)
         })
-      
     };
   
   validatePwm = (rule, value, callback)=>{
+    const length = value && value.length
+    const pwdReg = /^[a-zA-Z0-9_]+$/
       if(!value){
         callback('密码必须输入')
-      }else if(value.length<4){
+      }else if(length<4){
         callback('密码必须大于等于4位')
-      }else if(value.length>12){
+      }else if(length>12){
         callback('密码必须小于等于12位')
-      }else if(!/^[a-zA-Z0-9_]+$/.test(value)){  
+      }else if(!pwdReg.test(value)){  
         callback('密码必须是英文、数字或下划线组成')
       }else{
         callback()
@@ -66,6 +43,12 @@ const {Item} = Form
 
   render() {
   
+    const {hasLogin} = this.props
+    if(hasLogin){  //如果已经登录自动跳转到admin界面
+     // this.props.history.replace('/')
+     return <Redirect to='/admin'/>  //在render中使用
+
+    }
     const { getFieldDecorator } = this.props.form;
 
     return (
@@ -120,5 +103,8 @@ const {Item} = Form
 }
   
 
-export default Form.create()(Login)
+export default connect(
+  state =>({hasLogin:state.user.hasLogin}),  //用于显示状态的一般属性
+  {loginAsync}   //用于更新状态的函数属性
+)(Form.create()(Login))
 
