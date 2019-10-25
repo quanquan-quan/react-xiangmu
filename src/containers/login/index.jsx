@@ -2,12 +2,13 @@
 import React, { Component } from 'react'
 import { Form, Icon, Input, Button} from 'antd';
 import { connect } from "react-redux";
-import { Redirect } from "react-router-dom";
+//import { Redirect } from "react-router-dom";
  
 
-import './login.less'
+import './index.less'
 import logo from './images/logo.png'
-import { loginAsync } from "../../redux/action-creators/user";
+import { loginAsync } from "../../redux/action-creators/user"
+import withCheckLogin from "../with-check-login";
 
   //connect(
   //   state =>({hasLogin:state.user.hasLogin}),  //用于显示状态的一般属性
@@ -20,11 +21,11 @@ import { loginAsync } from "../../redux/action-creators/user";
 const Item=Form.Item
 //const {Item} = Form 
 @connect(
-  state =>({hasLogin:state.user.hasLogin}),  //用于显示状态的一般属性
+  state =>({}),  //用于显示状态的一般属性
   {loginAsync}   //用于更新状态的函数属性
  )
 @Form.create()  //下面的这个@先执行   这样写相当于 login = Form.create()(Login)
-
+@withCheckLogin
 
  class Login extends Component {
 //点击登录按钮实现的功能
@@ -57,13 +58,6 @@ const Item=Form.Item
   }
 
   render() {
-  
-    const {hasLogin} = this.props
-    if(hasLogin){  //如果已经登录自动跳转到admin界面
-     // this.props.history.replace('/')
-     return <Redirect to='/admin'/>  //在render中使用
-
-    }
     const { getFieldDecorator } = this.props.form;
 
     return (
