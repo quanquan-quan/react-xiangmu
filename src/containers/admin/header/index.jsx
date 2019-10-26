@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
 import { withRouter } from "react-router-dom"; //高阶组件
-import dayjs from 'dayjs'
+//import dayjs from 'dayjs'
+import {  format } from 'date-fns'
 
 import LinkButton from '../../../components/link-button'
 import './index.less'
@@ -16,7 +17,7 @@ class Header extends Component {
   
   //动态显示时间  状态
     state = {
-      currentTime:dayjs().format('YYYY-MM-DD HH:mm:ss')
+      currentTime:format(new Date(), 'yyyy-MM-dd HH:MM:SS')
     }
  
   logout = ()=>{
@@ -28,7 +29,7 @@ class Header extends Component {
    componentDidMount(){
      this.intervalId =  setInterval(() => {
        this.setState({
-         currentTime:dayjs().format('YYYY-MM-DD HH:mm:ss')
+         currentTime:format(new Date(), 'yyyy-MM-dd HH:MM:SS')
        })
      }, 1000);
    }
