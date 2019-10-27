@@ -1,67 +1,148 @@
-import React, { Component } from 'react'
-import { connect } from 'react-redux';
-import { withRouter } from "react-router-dom"; //高阶组件
-//import dayjs from 'dayjs'
-import {  format } from 'date-fns'
+import React, {Component} from 'react'
+import {Modal, Button, Icon} from 'antd'
+import {withRouter} from 'react-router-dom'
+import dayjs from 'dayjs'
+import {connect} from 'react-redux'
+import screenfull from 'screenfull'
 
+import {removeUserToken} from '../../../redux/action-creators/user'
 import LinkButton from '../../../components/link-button'
-import './index.less'
-/**
- * 管理界面的头部的组件
- */
+import menuList from '../../../config/menu-config'
+import {reqWeather} from '../../../api'
 
-// 获取当前  //connect包装的是withRouter包装后的组件
- @connect(state =>({username:state.user.user.username}))
- @withRouter  //这个高阶组件函数接收的是Header 返回一个新的组件
+import './index.less'
+
+
+/*
+头部组件
+*/
+@connect(
+  state => ({username: state.user.user.username, headerTitle: state.headerTitle}),
+  {removeUserToken}
+)
+@withRouter
 class Header extends Component {
-  
-  //动态显示时间  状态
-    state = {
-      currentTime:format(new Date(), 'yyyy-MM-dd HH:MM:SS')
-    }
- 
-  logout = ()=>{
-    alert('logout')
+
+  state = {
+    sysTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    dayPictureUrl: '', // 天气图片的url
+    weather: '',
+    isScreenFull: false
   }
 
+  /*
+  发异步ajax获取天气数据并更新状态
+   */
+  getWeather = async () => {
+    const {dayPictureUrl, weather} = await reqWeather('北京')
+    this.setState({
+      dayPictureUrl,
+      weather
+    })
+  }
 
- //react的钩子（生命周期）  componentDidMount 组件已经挂载
-   componentDidMount(){
-     this.intervalId =  setInterval(() => {
-       this.setState({
-         currentTime:format(new Date(), 'yyyy-MM-dd HH:MM:SS')
-       })
-     }, 1000);
-   }
- //react的钩子（生命周期）  componentWillUnmount 组件将要卸载
-    componentWillUnmount (){
-      clearInterval(this.intervalId)
+  /*
+  启动循环定时器, 每隔1s更新一次sysTime
+   */
+  getSysTime = () => {
+    this.intervalId = setInterval(() => {
+      this.setState({
+        sysTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
+      })
+    }, 1000)
+  }
+
+  /*
+  退出登陆
+   */
+  logout = () => {
+    Modal.confirm({
+      content: '确定退出吗?',
+      onOk: () => {
+        console.log('OK')
+        this.props.removeUserToken()
+      },
+      onCancel() {
+        console.log('Cancel')
+      },
+    })
+  }
+
+  /*
+  根据请求的path得到对应的标题
+   */
+  getTitle = (path) => {
+    let title
+    menuList.forEach(menu => {
+      if(menu.key===path) {
+        title = menu.title
+      } else if (menu.children) {
+        menu.children.forEach(item => {
+          if(path.indexOf(item.key)===0) {
+            title = item.title
+          }
+        })
+      }
+    })
+
+    return title
+  }
+
+  toggleScreen = () => {
+    if (screenfull.isEnabled) {
+      // 切换全屏
+      screenfull.toggle();
     }
+  }
+
+  onChange = () => {
+    this.setState({
+      isScreenFull: !this.state.isScreenFull
+    })
+  }
+
+  componentDidMount () {
+    this.getSysTime()
+    this.getWeather()
+
+    // 绑定事件
+    screenfull.on('change', this.onChange)
+  }
+
+  componentWillUnmount () {
+    // 清除定时器
+    clearInterval(this.intervalId)
+    // 解绑事件
+    screenfull.off('change', this.onChange)
+  }
 
   render() {
-//得到当前请求的路由路径
-const path= this.props.location.pathname
-//读时间状态
-const {currentTime} = this.state
+    const {sysTime, dayPictureUrl, weather, isScreenFull} = this.state
 
+    // 得到对应的标题
+    // const headerTitle = this.getTitle(path)
+    const headerTitle = this.props.headerTitle
 
     return (
-      <div className='header'>
-       <div className='header-top'>
-         <span>欢迎,{this.props.username}</span>
-         <LinkButton onClick={this.logout}>退出</LinkButton>
-       </div>
-       <div className='header-bottom'>
-         <div className='header-bottom-left'>{path}</div>
-         <div className='header-bottom-right'>
-         
-           <span>{currentTime}</span>
-           <img src="http://api.map.baidu.com/images/weather/day/xiaoyu.png" alt="weather"/>
-            <span>小雨转多云</span>
-         </div>
-       </div>
+      <div className="header">
+        <div className="header-top">
+        <Button size="small" onClick={this.toggleScreen}>
+          <Icon type={isScreenFull ? 'fullscreen-exit' : 'fullscreen'} />
+        </Button> &nbsp;
+          <span>欢迎, {this.props.username}</span>
+          <LinkButton onClick={this.logout}>退出</LinkButton>
+        </div>
+        <div className="header-bottom">
+          <div className="header-bottom-left">{headerTitle}</div>
+          <div className="header-bottom-right">
+            <span>{sysTime}</span>
+            <img src={dayPictureUrl} alt="weather"/>
+            <span>{weather}</span>
+          </div>
+        </div>
       </div>
     )
   }
 }
+
 export default Header

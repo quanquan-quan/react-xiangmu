@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 
 /**
- * 测试折线图使用的路由组件
+ *  线性图
  */
 export default class Line extends Component {
   render() {

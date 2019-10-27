@@ -1,101 +1,87 @@
-/**
- * 封装一个AJAX请求的函数
- * 进行axios的 二次封装（ajax请求）
- * 
- */
+/*
+用来发ajax请求的函数模块, 包装的就是axios的instance
+  1). 将post请求的data对象数据转换为urlencode格式的字符串数据
+  2). 如果请求成功, 判断操作是否成功
+      如果成功返回返回的data数据, 外部具体请求得到需要的数据
+      如果失败返回携带msg的错误, 外部具体请求处理错误
+  3).统一处理请求异常, 外部调用者不用再处理请求异常
+  4). 请求过程中显示请求进度的效果
+*/
+import axios from "axios"
+import qs from 'qs'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css' // 颜色可以强行修改
+import { message } from 'antd'
+import { removeUserToken } from '../redux/action-creators/user'
 
+import store from '../redux/store'
+import { IS_DEV } from "../config/index"
+import history from '../history'
 
- /**
-  * 2.如果请求成功，判断操作是否成功
-  *   如果成功 则返回data数据，外部具体请求得到需要的数据
-  *   如果失败 则返回携带msg的错误，外部具体请求处理错误
-  * 3.统一处理请求异常，外部调用者不用再处理请求异常
-  * 4.请求过程中显示请求进度的效果
-  * 5.token验证处理
-  *   如果有token ,添加到请求头中：Authorization
-  *   响应拦截器失败的回调：
-  *       如果status401,清除用户数据，自动跳转到登录页面内
-  *       如果当前已经在登录界面，不需要做处理
-  */
- import axios from 'axios'
- import qs from 'qs' 
- import { message } from "antd";
+const instance = axios.create({
+  baseURL: IS_DEV ? '' : '/react_api',
+  timeout: 10000, // 超时时间为10s
+})
 
- import store from "../redux/store";
- import {removeUserToken} from '../redux/action-creators/user'
- import history from '../history';
- //创建一个instance
- const instance = axios.create({
-   timeout: 10000 //超时时间为10s
- })
- 
- //添加请求拦截器
- instance.interceptors.request.use(config=>{  //config配置的属性 url（请求地址）/method(请求方式) /data（请求数据）/params
-   //1.将post/put/delete请求的data对象数据转换为urlencode格式的字符串
- const {data} = config //结构赋值  相当于config.data
- 
-   if(data instanceof Object){  //只要data是对象就转换
-     config.data = qs.stringify(data)
- }
-//5.如果有token ,添加到请求头中：Authorization
-const token = store.getState().user.token
-   if(token){
-     //config对应的是当前请求的配置
-     config.headers['Authorization'] = 'atguigu_' + token
-   }
-   return config  //必须返回config
- })
- 
- 
- 
- //添加响应拦截器
- instance.interceptors.response.use(
-   response =>{
-   const result = response.data
-  //  if(result.data===0){ //操作成功
-  //    return result.data || {}  //外部成功回调得到对象类型的数据{}避免取内部数据时出现andifind或者null的情况
-  //  }else{ //操作失败
-  //    return Promise.reject(result.msg || '操作失败，未知原因')
-  //   }
-  return result
-   },
-   error =>{
+/* 使用请求拦截器 */
+instance.interceptors.request.use(config => {
 
-    //3.统一处理请求异常，外部调用者不用再处理请求异常
+  // 发请求前开始显示加载进度效果
+  NProgress.start() 
 
-    
-     // debugger  用于在代码中打断点
-    //如果status为401，token有问题
-     //const status = error.response.status
-     const {status,data:{msg}={}} = error.response
-     if(status===401){
-//如果当前没有在登录界面（当前路由路径不是/login）
-      if(history.location.pathname!=='/login'){
-      //显示提示
-      message.error(msg)
-      //删除用户信息，自动跳转到登录界面
+  // 1). 将post请求的data对象数据转换为urlencode格式的字符串数据
+  if (config.method.toUpperCase() === 'POST' && config.data instanceof Object) {
+    // config.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    config.data = qs.stringify(config.data)
+  }
+
+  // 如果状态数据中有token, 通过Authorization头携带token
+  const token = store.getState().user.token
+  if (token) {
+    config.headers['Authorization'] = 'atguigu_' + token
+  }
+  
+  // 必须返回config对象
+  return config
+})
+
+/* 使用响应拦截器 */
+instance.interceptors.response.use(
+  response => { // ajax请求成功了
+    NProgress.done() // 隐藏请求进度
+
+    /* 
+    2). 如果请求成功, 判断操作是否成功, 
+        如果成功返回返回的data数据, 外部具体请求得到需要的数据
+        如果失败返回携带msg的错误, 外部具体请求处理错误
+    */
+    const result = response.data
+    // if (result.status===0) {
+    //   return result.data || {}
+    // } else {
+    //   return Promise.reject(result.msg || '未知错误!')
+    // }
+    return result
+  },
+  // 3). 统一处理请求异常, 外部调用者不用再处理请求异常
+  error => { // ajax请求异常
+    NProgress.done() // 隐藏请求进度
+    const {status, data: {msg}} = error.response
+    if (status===401) {
+      console.log('-----', history.location.pathname)
+      if (history.location.pathname!=='/login') { // 如果当前没有在登陆界面, 退出登陆自动跳转到登陆界面
         store.dispatch(removeUserToken())
+        message.error(msg)
       }
-     
-     }else if(status===404){
+    } else if (status===404) {
       message.error('请求资源不存在')
-     }else{
-      message.error('请求出错',+error.message)
-     }
+    } else {
+      message.error('请求失败: ' + error.message || '未知错误')
+    }
+    
+    // 返回一个pending状态的promise ==> 中断promise链
+    return new Promise(() => {})
+  }
+)
 
-     //throw  error  
-     
-      //显示请求错误的提示
-     //message.error('请求出错',+error.message)
-      //中断Promise链，外部不需要再处理请求出错的情况
-
-      return new Promise(()=>{})
-
-     //return Promise.reject(error)
-   }
- )
- 
- 
- //向外暴露instance
- 
- export default instance
+export default instance

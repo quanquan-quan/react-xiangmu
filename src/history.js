@@ -1,6 +1,4 @@
-/**
- * 向外暴露一个history对象
- */
-import {createBrowserHistory} from 'history'
-//向外暴露不带#号的history
+// hack，在组件外部使用导航
+import { createBrowserHistory } from "history"
+
 export default createBrowserHistory()

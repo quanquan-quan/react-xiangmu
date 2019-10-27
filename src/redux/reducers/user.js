@@ -1,37 +1,44 @@
-/**
- * 管理登录用户的reduce函数
- */
+/* 
+管理登陆用户信息的reducer函数
+*/
+import {
+  LOGIN_SUCCESS,
+  REMOVE_USER_TOKEN,
+} from '../action-types'
 
- import { SAVE_USER_TOKEN ,REMOVE_USER_TOKEN} from "../action-types";
- import storage from "../../utils/storage";
+import { getItem, setItem, removeItem } from '@utils/storage'
 
- //const _user = JSON.parse(localStorage.getItem('user_key')||'{}')
- //const _token = localStorage.getItem('token_key')
+const userData = getItem('user')
+const token = getItem('token')
+// 初始化用户数据
+const initUser = {
+  hasLogin: !!(userData.username && token),
+  user: userData,
+  token: token
+}
 
- const _user = storage.get(storage.KEYS.USER_KEY,{})
- const _token = storage.get(storage.KEYS.TOKEN_KEY,'')
-
- const initUser = { //初始值从local中读取
-   user:_user,
-   token:_token,
-   hasLogin: _token && _user._id //是否已经登录
- }
- export default function user(state=initUser,action) {
-   switch (action.type) {
-     case SAVE_USER_TOKEN:
-       const {user,token} =action.data
-     return {
-      user,
-      token,
-      hasLogin:true
-     }
-     case REMOVE_USER_TOKEN:
-     return {
-      user:{},
-      token:'',
-      hasLogin:false
-     }
-     default:
-       return state
-   }
- }
+export default function user(state = initUser, action) {
+  switch (action.type) {
+    case LOGIN_SUCCESS :
+      const { user, token } = action.data
+      // 保存在本地
+      setItem('user', user)
+      setItem('token', token)
+      // 返回新的state
+      return {
+        hasLogin: true,
+        user,
+        token
+      }
+    case REMOVE_USER_TOKEN :
+      removeItem('user')
+      removeItem('token')
+      return {
+        hasLogin: false,
+        user: {},
+        token: ''
+      }
+    default :
+      return state
+  }
+}

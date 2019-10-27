@@ -1,55 +1,37 @@
-/**
- * 操作登录用户信息数据的action creator
- */
-import { reqLogin } from "../../api";
-import { message } from "antd";
-import { SAVE_USER_TOKEN,REMOVE_USER_TOKEN } from "../action-types";
-import storage from "../../utils/storage";
+/* 
+包含n个操作user的action工厂函数的模块
+*/
+import { message } from 'antd'
 
-/**
- * 保存user和token的同步action creator
- */
-const saveUserToken = (user,token) =>({type:SAVE_USER_TOKEN,data: {user,token}})
-
-//退出登录对应的同步action creator
-
-export const removeUserToken = ()=>{
-  //清除local中的user 和 token
-  //localStorage.removeItem('user_key')
-  //localStorage.removeItem('token_key')
-  storage.remove(storage.KEYS.TOKEN_KEY)
-  storage.remove(storage.KEYS.USER_KEY)
-
-  return {type:REMOVE_USER_TOKEN}
-}
-
- /**
-  * 用于登录请求的异步action creator
-  */
-
-  export function loginAsync({username,password}) {
-    //返回一个异步action函数
-    return async dispatch=>{  //action函数接受一个固定参数dispatch
-        // 1.执行异步请求 (执行异步请求要调用发请求的方法src/api/ajax.js))
-      const result = await reqLogin({username,password})  //调用接口请求函数发送ajax请求
-        //2.根据结果分分发同步action
-        if(result.status===0){
-          //登录成功
-         const {user,token}= result.data
-         //将user,token保存在local中
-            //localStorage.setItem('user_key',JSON.stringify(user))   //对象和数组 用stringify 基本类型就不用转换成JSON
-            //localStorage.setItem('token_key',token)  // 'abc' 如果用stringify 转换之后就会变成""abc""
-            storage.set(storage.KEYS.USER_KEY,user)
-            storage.set(storage.KEYS.TOKEN_KEY,token)
+import {
+  LOGIN_SUCCESS,
+  REMOVE_USER_TOKEN,
+} from '../action-types'
+import {
+  reqLogin,
+} from '@api'
 
 
-         // 分发保存user,token信息的同步action
-         dispatch(saveUserToken(user,token))
+// 保存用户数据的同步action
+const loginSuccess = ({user, token}) => ({type: LOGIN_SUCCESS, data: {user, token}})
 
-        }else{
-          //登录失败
-          message.error(result.msg)
-        }
+// 删除用户的同步action
+export const removeUserToken = () => ({type: REMOVE_USER_TOKEN})
 
+/* 
+异步登陆
+*/
+export const loginAsync = (username, password) => {
+  return async (dispatch) => {
+    const {status, data: {user, token}={}, msg} = await reqLogin({username, password})
+    if (status===0) {
+      dispatch(loginSuccess({user, token}))
+    } else {
+      // 登陆失败, 提示错误
+      message.error(msg)
     }
   }
+}
+
+
+

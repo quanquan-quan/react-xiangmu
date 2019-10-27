@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 
 /**
- * 测试饼图使用的路由组件
+ * 饼图
  */
 export default class Pie extends Component {
   render() {

@@ -1,14 +1,15 @@
-import React from "react";
+/* 
+入口js
+*/
+import React from 'react'
 import ReactDOM from 'react-dom'
-import {Provider} from 'react-redux'
+import { Provider } from 'react-redux'
 
-
+import App from './App'
 import store from './redux/store'
-import App from './APP'
 
 ReactDOM.render((
-  
-    <Provider store={store}>
-      <App/>
-    </Provider>
-),document.getElementById('root'))
+  <Provider store={store}>
+    <App/>
+  </Provider>
+), document.getElementById('root'))

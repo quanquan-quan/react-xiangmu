@@ -1,13 +1,12 @@
 import React, { Component } from 'react'
-
 /**
- * Admin的首页子路由组件
+ * 用户管理
  */
-export default class Home extends Component {
+export default class User extends Component {
   render() {
     return (
       <div>
-        Home
+        User
       </div>
     )
   }
